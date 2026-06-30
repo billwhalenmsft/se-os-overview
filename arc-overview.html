@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MCAPS OS — the journey, v1.0 → v2.7</title>
+<meta name="description" content="MCAPS OS Arc Overview: how the field operating system grew from v1.0 (the lifecycle proven for one persona) to v2.7 (the Book — a shared baseline every role aligns to)." />
+<script>
+  (() => {
+    const param = new URLSearchParams(window.location.search).get("scoutTheme");
+    const theme =
+      param || (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+    document.documentElement.setAttribute("data-theme", theme);
+  })();
+</script>
+<style>
+  :root {
+    color-scheme: light;
+    --cp-bg: #faf9f8;
+    --cp-bg-elevated: #ffffff;
+    --cp-surface: #ffffff;
+    --cp-surface-soft: #f3f2f1;
+    --cp-border: #e1dfdd;
+    --cp-border-strong: #c8c6c4;
+    --cp-text: #201f1e;
+    --cp-text-muted: #605e5c;
+    --cp-text-soft: #797775;
+    --cp-accent: #0078d4;
+    --cp-accent-hover: #106ebe;
+    --cp-accent-soft: rgba(0, 120, 212, 0.08);
+    --cp-accent-fg: #ffffff;
+    --cp-success: #107c10;
+    --cp-danger: #d13438;
+    --cp-warning: #f7a800;
+    --cp-link: #0067b8;
+    --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.12);
+    --cp-overlay: rgba(255, 255, 255, 0.8);
+    --cp-panel: rgba(255, 255, 255, 0.86);
+    --cp-panel-strong: rgba(255, 255, 255, 0.96);
+    --cp-sheen: rgba(255, 255, 255, 0.55);
+    --cp-highlight: rgba(0, 120, 212, 0.12);
+  }
+  html[data-theme="dark"] {
+    color-scheme: dark;
+    --cp-bg: #3d3b3a;
+    --cp-bg-elevated: #343231;
+    --cp-surface: #292929;
+    --cp-surface-soft: #2e2e2e;
+    --cp-border: #474747;
+    --cp-border-strong: #5f5f5f;
+    --cp-text: #dedede;
+    --cp-text-muted: #919191;
+    --cp-text-soft: #b0b0b0;
+    --cp-accent: #50b0ff;
+    --cp-accent-hover: #6cbcff;
+    --cp-accent-soft: rgba(80, 176, 255, 0.14);
+    --cp-accent-fg: #1a1a1a;
+    --cp-success: #4ade80;
+    --cp-danger: #f87171;
+    --cp-warning: #fbbf24;
+    --cp-link: #6cb8f6;
+    --cp-shadow: 0 18px 48px rgba(0, 0, 0, 0.32);
+    --cp-overlay: rgba(41, 41, 41, 0.88);
+    --cp-panel: rgba(41, 41, 41, 0.72);
+    --cp-panel-strong: rgba(41, 41, 41, 0.96);
+    --cp-sheen: rgba(255, 255, 255, 0.04);
+    --cp-highlight: rgba(80, 176, 255, 0.12);
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-snap-type: y proximity; }
+  body {
+    margin: 0;
+    background: var(--cp-bg);
+    color: var(--cp-text);
+    font-family: "Segoe UI", Aptos, Calibri, -apple-system, BlinkMacSystemFont, sans-serif;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── stage / flow ── */
+  .stage {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 72px 24px;
+    position: relative;
+    text-align: center;
+  }
+  .inner { width: 100%; max-width: 980px; margin: 0 auto; }
+  .reveal { opacity: 0; transform: translateY(22px); transition: opacity .7s ease, transform .7s ease; }
+  .reveal.in { opacity: 1; transform: none; }
+
+  .kicker {
+    font-size: 0.74rem; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase;
+    color: var(--cp-accent); margin-bottom: 20px;
+  }
+  h1 { font-size: clamp(2.1rem, 5.4vw, 4rem); line-height: 1.04; letter-spacing: -0.03em; margin: 0 0 22px; font-weight: 850; }
+  h2 { font-size: clamp(1.7rem, 4vw, 2.9rem); line-height: 1.08; letter-spacing: -0.02em; margin: 0 0 18px; font-weight: 820; }
+  .big { font-size: clamp(1.5rem, 3.4vw, 2.4rem); font-weight: 750; line-height: 1.18; letter-spacing: -0.01em; }
+  .sub { font-size: clamp(1.05rem, 2vw, 1.35rem); color: var(--cp-text-muted); max-width: 62ch; margin: 0 auto; }
+  .accent { color: var(--cp-accent); }
+  em { font-style: normal; color: var(--cp-accent); }
+
+  /* ── keep going ── */
+  .keepgoing {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%);
+    z-index: 40; display: inline-flex; align-items: center; gap: 9px;
+    background: var(--cp-accent); color: var(--cp-accent-fg);
+    border: 0; border-radius: 999px; padding: 12px 22px;
+    font-family: inherit; font-size: 0.92rem; font-weight: 750; cursor: pointer;
+    box-shadow: var(--cp-shadow); transition: transform .15s ease, background .15s ease, opacity .3s ease;
+  }
+  .keepgoing:hover { background: var(--cp-accent-hover); transform: translateX(-50%) translateY(-2px); }
+  .keepgoing .arrow { animation: bob 1.6s ease-in-out infinite; }
+  @keyframes bob { 0%,100%{ transform: translateY(0);} 50%{ transform: translateY(4px);} }
+
+  /* ── progress rail ── */
+  .rail { position: fixed; right: 22px; top: 50%; transform: translateY(-50%); z-index: 40; display: flex; flex-direction: column; gap: 11px; }
+  .rail button {
+    width: 10px; height: 10px; border-radius: 50%; border: 1px solid var(--cp-border-strong);
+    background: transparent; padding: 0; cursor: pointer; transition: all .2s ease;
+  }
+  .rail button.active { background: var(--cp-accent); border-color: var(--cp-accent); transform: scale(1.25); }
+  @media (max-width: 680px){ .rail { display: none; } }
+
+  /* ── brand chip top ── */
+  .topbrand {
+    position: fixed; left: 22px; top: 18px; z-index: 40;
+    display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 0.9rem;
+  }
+  .topbrand .mark {
+    width: 26px; height: 26px; border-radius: 8px;
+    background: linear-gradient(135deg, var(--cp-accent), var(--cp-accent-hover));
+    display: grid; place-items: center; color: var(--cp-accent-fg); font-weight: 900; font-size: 0.85rem;
+  }
+  .topbrand .viewtag {
+    font-weight: 700; font-size: 0.72rem; color: var(--cp-text-muted);
+    padding-left: 10px; margin-left: 4px; border-left: 1px solid var(--cp-border);
+  }
+  .foot a { color: var(--cp-link); text-decoration: none; font-weight: 600; }
+  .foot a:hover { text-decoration: underline; }
+
+  /* ── version band cards ── */
+  .bands { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 28px; }
+  @media (max-width: 860px){ .bands { grid-template-columns: repeat(2,1fr);} }
+  @media (max-width: 460px){ .bands { grid-template-columns: 1fr;} }
+  .band {
+    background: var(--cp-surface); border: 1px solid var(--cp-border); border-radius: 16px;
+    padding: 18px 16px; text-align: left; box-shadow: 0 0 2px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.14);
+    display: flex; flex-direction: column; gap: 8px;
+  }
+  .band.now { border-color: var(--cp-accent); box-shadow: 0 0 0 1px var(--cp-accent), var(--cp-shadow); }
+  .band .ver {
+    align-self: flex-start; font-size: 0.82rem; font-weight: 900; letter-spacing: 0.02em;
+    color: var(--cp-accent-fg); background: var(--cp-accent); border-radius: 8px; padding: 3px 10px;
+  }
+  .band .theme { font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cp-accent); }
+  .band .nm { font-weight: 820; font-size: 1.05rem; letter-spacing: -0.01em; }
+  .band .job { font-size: 0.84rem; color: var(--cp-text-muted); line-height: 1.4; }
+  .band .badge-now { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--cp-success); }
+
+  /* ── milestone moment ── */
+  .moment {
+    display: inline-flex; align-items: baseline; gap: 14px; flex-wrap: wrap; justify-content: center; margin-bottom: 8px;
+  }
+  .moment .vbig {
+    font-size: clamp(2.4rem, 6vw, 4.2rem); font-weight: 900; letter-spacing: -0.03em; color: var(--cp-accent); line-height: 1;
+  }
+  .moment .arc { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--cp-text-soft); }
+
+  /* ── proof chips ── */
+  .chips { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 26px; }
+  .chip {
+    display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 650;
+    padding: 9px 15px; border-radius: 999px; background: var(--cp-surface); border: 1px solid var(--cp-border); color: var(--cp-text);
+  }
+  .chip .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--cp-accent); }
+
+  .cta {
+    display: inline-flex; align-items: center; gap: 10px; margin-top: 26px;
+    background: var(--cp-accent); color: var(--cp-accent-fg); border-radius: 14px;
+    padding: 15px 26px; font-size: 1.05rem; font-weight: 800;
+  }
+  .foot { margin: 30px auto 0; font-size: 0.78rem; color: var(--cp-text-soft); max-width: 70ch; }
+  .quote { font-size: clamp(1.2rem, 2.6vw, 1.8rem); font-weight: 700; line-height: 1.35; max-width: 26ch; margin: 0 auto; }
+</style>
+</head>
+<body>
+
+<div class="topbrand"><span class="mark">M</span><span>MCAPS&nbsp;OS</span><span class="viewtag">Arc&nbsp;Overview</span></div>
+<div class="rail" id="rail"></div>
+
+<!-- 0 · HOOK -->
+<section class="stage" id="s0">
+  <div class="inner">
+    <div class="kicker reveal">The journey · v1.0 → v2.7</div>
+    <h1 class="reveal">It didn't start as a platform.<br/>It started as <em>one operated week.</em></h1>
+    <p class="big reveal">Here's how MCAPS OS grew — from a single seller's rhythm
+    to a field operating system the whole team shares.</p>
+  </div>
+</section>
+
+<!-- 1 · v1.0 -->
+<section class="stage" id="s1">
+  <div class="inner">
+    <div class="moment reveal"><span class="vbig">v1.0</span><span class="arc">Arc 1 · R0–R6</span></div>
+    <h2 class="reveal">The lifecycle, proven<br/>for one persona.</h2>
+    <p class="sub reveal">One front door. The engagement run end-to-end for the seller we know best —
+    signal, qualify, prove, commit, deliver. Not six tools. <strong>One operated rhythm.</strong></p>
+  </div>
+</section>
+
+<!-- 2 · v2.0 -->
+<section class="stage" id="s2">
+  <div class="inner">
+    <div class="moment reveal"><span class="vbig">v2.0</span><span class="arc">Arc 2 · R7–R12</span></div>
+    <h2 class="reveal">Then it learned<br/><em>who you are.</em></h2>
+    <p class="sub reveal">The engine stopped assuming one role. It wrapped the whole deal team —
+    ATU, STU, CSU — each with their own lens from one login. At <strong>R12 it named itself:
+    MCAPS&nbsp;OS.</strong> The "Inside Your OS" moment.</p>
+  </div>
+</section>
+
+<!-- 3 · the maturation (v2.1 → v2.6) -->
+<section class="stage" id="s3">
+  <div class="inner">
+    <div class="kicker reveal">v2.1 → v2.6 · intelligent + account-wide</div>
+    <h2 class="reveal">Then it got smart<br/>across the whole book.</h2>
+    <div class="bands reveal">
+      <div class="band"><span class="ver">v2.1</span><div class="theme">Account brain</div><div class="nm">Account 360</div><div class="job">The robust account surface the whole pod plays from.</div></div>
+      <div class="band"><span class="ver">v2.2</span><div class="theme">Territory</div><div class="nm">The whole book</div><div class="job">Territory cockpit + My Territory across the full account list.</div></div>
+      <div class="band"><span class="ver">v2.4</span><div class="theme">The play</div><div class="nm">Account Play</div><div class="job">The pod plays the account; account maturity is the spine.</div></div>
+      <div class="band"><span class="ver">v2.5</span><div class="theme">The loop</div><div class="nm">Continuous funnel</div><div class="job">Close the loop — live consumption + delivery, watched and nudged.</div></div>
+      <div class="band"><span class="ver">v2.6</span><div class="theme">Open Intelligence</div><div class="nm">Paste a link</div><div class="job">Public-source extraction + claim fusion, with provenance + freshness.</div></div>
+      <div class="band"><span class="ver">v2.6</span><div class="theme">Self-documenting</div><div class="nm">Arc Map</div><div class="job">The roadmap the system draws of itself — this very journey.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4 · v2.7 The Book (current) -->
+<section class="stage" id="s4">
+  <div class="inner">
+    <div class="moment reveal"><span class="vbig">v2.7</span><span class="arc">R68–R70 · current</span></div>
+    <h2 class="reveal">The Book.</h2>
+    <p class="sub reveal">A shared baseline everyone sees — focused by your role, rolled up for your leader.
+    One source of truth the whole field aligns to. <strong>This is where MCAPS OS is today.</strong></p>
+    <div class="chips reveal">
+      <span class="chip"><span class="dot"></span>Shared baseline</span>
+      <span class="chip"><span class="dot"></span>Focused by role</span>
+      <span class="chip"><span class="dot"></span>Leader rollup</span>
+    </div>
+  </div>
+</section>
+
+<!-- 5 · where it's heading -->
+<section class="stage" id="s5">
+  <div class="inner">
+    <div class="kicker reveal">v2.8 and beyond · already in build</div>
+    <h2 class="reveal">Next: the glass<br/>that actually <em>acts.</em></h2>
+    <p class="sub reveal">The engagement spine <strong>executes</strong> — the next-action button runs the engine and
+    writes to CRM. You start projects <strong>in the system</strong>, not a code editor. Every customer page
+    has a <strong>feedback loop</strong> coming back in. The demo becomes a self-collecting pilot.</p>
+  </div>
+</section>
+
+<!-- 6 · close -->
+<section class="stage" id="s6">
+  <div class="inner">
+    <div class="kicker reveal">MCAPS OS · v2.7</div>
+    <h2 class="reveal">One system.<br/>Every persona. Compounding.</h2>
+    <p class="quote reveal" style="margin-top:8px">Built on MCAPS&nbsp;IQ. Activated at every role.</p>
+    <p class="foot reveal">Five views, one vision:
+      <a href="index.html">System View</a> ·
+      <a href="mcaps-os-exec.html">Exec View</a> ·
+      <a href="mcaps-os.html">User / Builder View</a> ·
+      <b>Arc Overview</b> (you're here) ·
+      <a href="inside-your-os.html">Inside Your OS</a>.</p>
+  </div>
+</section>
+
+<button class="keepgoing" id="keepgoing">Keep going <span class="arrow">↓</span></button>
+
+<script>
+  const stages = Array.from(document.querySelectorAll('.stage'));
+  let idx = 0;
+
+  const rail = document.getElementById('rail');
+  stages.forEach((s, i) => {
+    const b = document.createElement('button');
+    b.setAttribute('aria-label', 'Go to section ' + (i + 1));
+    b.addEventListener('click', () => scrollTo(i));
+    rail.appendChild(b);
+  });
+  const dots = Array.from(rail.children);
+
+  function scrollTo(i) {
+    idx = Math.max(0, Math.min(stages.length - 1, i));
+    stages[idx].scrollIntoView({ behavior: 'smooth' });
+  }
+  function next() { scrollTo(idx + 1); }
+  function prev() { scrollTo(idx - 1); }
+
+  document.getElementById('keepgoing').addEventListener('click', next);
+
+  document.addEventListener('keydown', (e) => {
+    if (['ArrowDown', 'PageDown', ' '].includes(e.key)) { e.preventDefault(); next(); }
+    else if (['ArrowUp', 'PageUp'].includes(e.key)) { e.preventDefault(); prev(); }
+  });
+
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach((en) => {
+      if (en.isIntersecting) {
+        const i = stages.indexOf(en.target);
+        idx = i;
+        dots.forEach((d, di) => d.classList.toggle('active', di === i));
+        en.target.querySelectorAll('.reveal').forEach((el, k) => {
+          setTimeout(() => el.classList.add('in'), k * 110);
+        });
+        document.getElementById('keepgoing').style.opacity = (i === stages.length - 1) ? '0' : '1';
+        document.getElementById('keepgoing').style.pointerEvents = (i === stages.length - 1) ? 'none' : 'auto';
+      }
+    });
+  }, { threshold: 0.55 });
+  stages.forEach((s) => io.observe(s));
+
+  window.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#s0 .reveal').forEach((el, k) => setTimeout(() => el.classList.add('in'), 120 + k * 120));
+  });
+</script>
+</body>
+</html>
